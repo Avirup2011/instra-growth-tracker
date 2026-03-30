@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IG Growth Tracker | Pro Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --card-border: #1e293b;
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.3);
+            --success: #10b981;
+            --danger: #f43f5e;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.3s ease; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px; 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { width: 100%; max-width: 1000px; animation: fadeIn 0.8s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header & Input */
+        header { margin-bottom: 2rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; }
+        .input-section { 
+            background: var(--card); 
+            padding: 20px; 
+            border-radius: 20px; 
+            border: 1px solid var(--card-border);
+            display: flex;
+            gap: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        input { 
+            flex: 1; 
+            background: #1e293b; 
+            border: 1px solid #334155; 
+            padding: 14px; 
+            border-radius: 12px; 
+            color: white; 
+            font-size: 1rem;
+            outline: none; 
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
+
+        button { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 0 24px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: 700;
+        }
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        button:active { transform: scale(0.98); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .card { 
+            background: var(--card); 
+            padding: 24px; 
+            border-radius: 24px; 
+            border: 1px solid var(--card-border); 
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        .label { color: var(--text-dim); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .val { font-size: 2.2rem; font-weight: 800; margin: 10px 0; display: block; }
+        
+        /* Progress Bar */
+        .progress-wrapper { margin-top: 15px; }
+        .bar-bg { background: #1e293b; height: 10px; border-radius: 5px; }
+        .bar-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--primary), #a855f7); 
+            border-radius: 5px; 
+            width: 0%; 
+            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Chart */
+        .chart-card { margin-top: 20px; min-height: 400px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        select { background: #1e293b; color: white; border: 1px solid #334155; padding: 8px; border-radius: 8px; }
+
+        .pos { color: var(--success); }
+        .neg { color: var(--danger); }
+
+        .footer-btns { display: flex; justify-content: space-between; margin-top: 30px; opacity: 0.6; }
+        .footer-btns:hover { opacity: 1; }
+        .btn-sm { background: transparent; border: 1px solid #334155; padding: 8px 15px; font-size: 0.8rem; color: var(--text-dim); }
+
+        @media (max-width: 600px) {
+            .input-section { flex-direction: column; }
+            button { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 style="margin:0">Growth Tracker</h1>
+        <p style="color: var(--text-dim); margin: 5px 0 0 0;">Visualizing your Instagram journey</p>
+    </header>
+
+    <div class="input-section">
+        <input type="number" id="followerInput" placeholder="Enter today's follower count...">
+        <button onclick="saveEntry()">Update Data</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="card">
+            <div class="rank-badge"></div>
+            <span class="label">Current Tier</span>
+            <span class="val" id="rankName">Loading...</span>
+            <div class="progress-wrapper">
+                <div class="bar-bg"><div class="bar-fill" id="rankProgress"></div></div>
+                <p id="nextRankMsg" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 8px;"></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="label">Total Followers</span>
+            <span class="val" id="totalCount">0</span>
+            <span id="pctChange" class="label">--</span>
+        </div>
+
+        <div class="card">
+            <span class="label">Daily Growth</span>
+            <span class="val" id="dailyDiff">+0</span>
+            <span class="label">vs. Yesterday</span>
+        </div>
+    </div>
+
+    <div class="card chart-card">
+        <div class="chart-header">
+            <h3 style="margin:0">Growth Analytics</h3>
+            <select id="timeFrame" onchange="renderChart()">
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="999">All Time</option>
+            </select>
+        </div>
+        <div style="height: 300px;">
+            <canvas id="growthChart"></canvas>
+        </div>
+    </div>
+
+    <div class="footer-btns">
+        <button class="btn-sm" onclick="exportData()">Export JSON</button>
+        <span id="syncStatus" style="font-size: 0.8rem; color: var(--text-dim);">Syncing...</span>
+        <button class="btn-sm" style="border-color: var(--danger)" onclick="resetCloudData()">Reset All</button>
+    </div>
+</div>
+
+<script>
+    // YOUR LIVE APPS SCRIPT URL
+    const APP_URL = "https://script.google.com/macros/s/AKfycbxoScNSqIkMt2dLZcv6QQLs3tIffzRI41rdiXUx76ns0jM8bR2u-0zgI8vzm4pHQ4NZFg/exec";
+
+    let rawData = [];
+    let chartInstance = null;
+
+    const tiers = [
+        { min: 0, name: "Newborn", next: 100 },
+        { min: 100, name: "Bronze I", next: 200 }, { min: 200, name: "Bronze II", next: 300 }, { min: 300, name: "Bronze III", next: 500 },
+        { min: 500, name: "Silver I", next: 750 }, { min: 750, name: "Silver II", next: 1000 }, { min: 1000, name: "Silver III", next: 2000 },
+        { min: 2000, name: "Gold I", next: 3500 }, { min: 3500, name: "Gold II", next: 5000 }, { min: 5000, name: "Gold III", next: 7500 },
+        { min: 7500, name: "Diamond I", next: 10000 }, { min: 10000, name: "Diamond II", next: 12500 }, { min: 12500, name: "Diamond III", next: 15000 },
+        { min: 15000, name: "Elite I", next: 20000 }, { min: 20000, name: "Elite II", next: 25000 }, { min: 25000, name: "Elite III", next: 50000 },
+        { min: 50000, name: "Master I", next: 75000 }, { min: 75000, name: "Master II", next: 100000 }, { min: 100000, name: "Master III", next: 250000 },
+        { min: 250000, name: "Legend I", next: 500000 }, { min: 500000, name: "Legend II", next: 750000 }, { min: 750000, name: "Legend III", next: 1000000 },
+        { min: 1000000, name: "Mythic", next: 10000000 }
+    ];
+
+    async function init() {
+        try {
+            const response = await fetch(APP_URL);
+            rawData = await response.json();
+            updateUI();
+            document.getElementById('syncStatus').innerText = "Cloud Synced";
+        } catch (err) {
+            document.getElementById('syncStatus').innerText = "Offline Mode";
+        }
+    }
+
+    async function saveEntry() {
+        const val = document.getElementById('followerInput').value;
+        if(!val) return;
+
+        document.getElementById('syncStatus').innerText = "Saving...";
+        await fetch(APP_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Essential for Apps Script
+            body: JSON.stringify({ count: parseInt(val) })
+        });
+
+        // Small delay to allow Google to process before refetching
+        setTimeout(() => {
+            document.getElementById('followerInput').value = '';
+            init();
+        }, 1000);
+    }
+
+    function updateUI() {
+        if (rawData.length === 0) return;
+
+        const latest = rawData[rawData.length - 1].count;
+        const prev = rawData.length > 1 ? rawData[rawData.length - 2].count : latest;
+        const diff = latest - prev;
+        const pct = prev === 0 ? 0 : ((diff / prev) * 100).toFixed(1);
+
+        // Update Stats
+        animateNum("totalCount", latest);
+        document.getElementById('dailyDiff').innerText = (diff >= 0 ? "+" : "") + diff;
+        document.getElementById('dailyDiff').className = `val ${diff >= 0 ? 'pos' : 'neg'}`;
+        document.getElementById('pctChange').innerText = `${pct}% growth`;
+
+        // Update Rank
+        const tier = tiers.reverse().find(t => latest >= t.min) || tiers[tiers.length-1];
+        tiers.reverse(); // put back for next logic
+        
+        document.getElementById('rankName').innerText = tier.name;
+        const progress = ((latest - tier.min) / (tier.next - tier.min)) * 100;
+        document.getElementById('rankProgress').style.width = Math.min(100, progress) + "%";
+        document.getElementById('nextRankMsg').innerText = `Goal: ${tier.next.toLocaleString()} for next rank`;
+
+        renderChart();
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        const days = parseInt(document.getElementById('timeFrame').value);
+        const dataSet = rawData.slice(-days);
+
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataSet.map(d => d.date),
+                datasets: [{
+                    data: dataSet.map(d => d.count),
+                    borderColor: '#8b5cf6',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointBackgroundColor: '#8b5cf6',
+                    fill: { target: 'origin', above: 'rgba(139, 92, 246, 0.1)' }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    }
+
+    function animateNum(id, end) {
+        const obj = document.getElementById(id);
+        let start = parseInt(obj.innerText.replace(/,/g, '')) || 0;
+        let range = end - start;
+        let current = start;
+        let increment = end > start ? 1 : -1;
+        let stepTime = Math.abs(Math.floor(1000 / range));
+        if (isNaN(stepTime) || stepTime === Infinity) stepTime = 10;
+        
+        let timer = setInterval(() => {
+            current += Math.ceil(range / 10);
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                obj.innerText = end.toLocaleString();
+                clearInterval(timer);
+            } else {
+                obj.innerText = current.toLocaleString();
+            }
+        }, 30);
+    }
+
+    async function resetCloudData() {
+        if (!confirm("This will delete your entire history. Continue?")) return;
+        await fetch(APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'reset' }) });
+        location.reload();
+    }
+
+    function exportData() {
+        const blob = new Blob([JSON.stringify(rawData)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ig-growth-backup.json';
+        a.click();
+    }
+
+    init();
+</script>
+</body>
+</html>
