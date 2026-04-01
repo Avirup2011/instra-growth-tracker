@@ -189,6 +189,7 @@
 
 <script>
     // YOUR LIVE APPS SCRIPT URL
+// YOUR LIVE APPS SCRIPT URL
     const APP_URL = "https://script.google.com/macros/s/AKfycbxoScNSqIkMt2dLZcv6QQLs3tIffzRI41rdiXUx76ns0jM8bR2u-0zgI8vzm4pHQ4NZFg/exec";
 
     let rawData = [];
@@ -209,10 +210,25 @@
     async function init() {
         try {
             const response = await fetch(APP_URL);
-            rawData = await response.json();
+            const json = await response.json();
+            
+            // --- DEDUPLICATION LOGIC ---
+            // Groups data by date. If same date exists, the LATEST one overwrites the previous ones.
+            const uniqueDataMap = {};
+            json.forEach(entry => {
+                uniqueDataMap[entry.date] = entry.count; 
+            });
+
+            // Convert the map back into an array sorted by date for the UI
+            rawData = Object.keys(uniqueDataMap).map(date => ({
+                date: date,
+                count: uniqueDataMap[date]
+            }));
+            
             updateUI();
             document.getElementById('syncStatus').innerText = "Cloud Synced";
         } catch (err) {
+            console.error(err);
             document.getElementById('syncStatus').innerText = "Offline Mode";
         }
     }
@@ -224,11 +240,10 @@
         document.getElementById('syncStatus').innerText = "Saving...";
         await fetch(APP_URL, {
             method: 'POST',
-            mode: 'no-cors', // Essential for Apps Script
+            mode: 'no-cors', 
             body: JSON.stringify({ count: parseInt(val) })
         });
 
-        // Small delay to allow Google to process before refetching
         setTimeout(() => {
             document.getElementById('followerInput').value = '';
             init();
@@ -249,9 +264,9 @@
         document.getElementById('dailyDiff').className = `val ${diff >= 0 ? 'pos' : 'neg'}`;
         document.getElementById('pctChange').innerText = `${pct}% growth`;
 
-        // Update Rank
-        const tier = tiers.reverse().find(t => latest >= t.min) || tiers[tiers.length-1];
-        tiers.reverse(); // put back for next logic
+        // Update Rank (using a copy to avoid reversing the original array)
+        const currentTiers = [...tiers].reverse();
+        const tier = currentTiers.find(t => latest >= t.min) || tiers[0];
         
         document.getElementById('rankName').innerText = tier.name;
         const progress = ((latest - tier.min) / (tier.next - tier.min)) * 100;
@@ -278,6 +293,7 @@
                     borderWidth: 3,
                     tension: 0.4,
                     pointBackgroundColor: '#8b5cf6',
+                    pointRadius: 4,
                     fill: { target: 'origin', above: 'rgba(139, 92, 246, 0.1)' }
                 }]
             },
@@ -299,8 +315,6 @@
         let range = end - start;
         let current = start;
         let increment = end > start ? 1 : -1;
-        let stepTime = Math.abs(Math.floor(1000 / range));
-        if (isNaN(stepTime) || stepTime === Infinity) stepTime = 10;
         
         let timer = setInterval(() => {
             current += Math.ceil(range / 10);
