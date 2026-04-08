@@ -195,16 +195,55 @@
     let rawData = [];
     let chartInstance = null;
 
-    const tiers = [
-        { min: 0, name: "Newborn 👶", next: 100 },
-        { min: 100, name: "Bronze I 🥉", next: 200 }, { min: 200, name: "Bronze II 🥉🥉", next: 300 }, { min: 300, name: "Bronze III 🥉🥉🥉", next: 500 },
-        { min: 500, name: "Silver I 🥈", next: 750 }, { min: 750, name: "Silver II 🥈🥈", next: 1000 }, { min: 1000, name: "Silver III 🥈🥈🥈", next: 2000 },
-        { min: 2000, name: "Gold I 🥇", next: 3500 }, { min: 3500, name: "Gold II 🥇🥇", next: 5000 }, { min: 5000, name: "Gold III 🥇🥇🥇", next: 7500 },
-        { min: 7500, name: "Diamond I 💎", next: 10000 }, { min: 10000, name: "Diamond II 💎💎", next: 12500 }, { min: 12500, name: "Diamond III 💎💎💎", next: 15000 },
-        { min: 15000, name: "Elite I ⚡️", next: 20000 }, { min: 20000, name: "Elite II ⚡️⚡️", next: 25000 }, { min: 25000, name: "Elite III ⚡️⚡️⚡️", next: 50000 },
-        { min: 50000, name: "Master I 🔥", next: 75000 }, { min: 75000, name: "Master II 🔥🔥", next: 100000 }, { min: 100000, name: "Master III 🔥🔥🔥", next: 250000 },
-        { min: 250000, name: "Legend I 🏆", next: 500000 }, { min: 500000, name: "Legend II 🏆🏆", next: 750000 }, { min: 750000, name: "Legend III 🏆🏆🏆", next: 1000000 },
-        { min: 1000000, name: "Mythic 🏅", next: 10000000 }
+const tiers = [
+    // --- EARLY GAME (0 - 1,000) ---
+    { min: 0, name: "Newborn 👶", next: 100 },
+    { min: 100, name: "Bronze I 🥉", next: 200 },
+    { min: 200, name: "Bronze II 🥉🥉", next: 300 },
+    { min: 300, name: "Bronze III 🥉🥉🥉", next: 500 },
+    { min: 500, name: "Silver I 🥈", next: 750 },
+    { min: 750, name: "Silver II 🥈🥈", next: 1000 },
+
+    // --- DENSE MID-GAME (1,000 - 10,000) ---
+    { min: 1000, name: "Silver III 🥈🥈🥈", next: 1250 },
+    { min: 1250, name: "Gold I 🥇", next: 1500 },
+    { min: 1500, name: "Gold II 🥇🥇", next: 1750 },
+    { min: 1750, name: "Gold III 🥇🥇🥇", next: 2000 },
+    { min: 2000, name: "Platinum I 💿", next: 2300 },
+    { min: 2300, name: "Platinum II 💿💿", next: 2600 },
+    { min: 2600, name: "Platinum III 💿💿💿", next: 3000 },
+    { min: 3000, name: "Emerald I ❇️", next: 3400 },
+    { min: 3400, name: "Emerald II ❇️❇️", next: 3800 },
+    { min: 3800, name: "Emerald III ❇️❇️❇️", next: 4300 },
+    { min: 4300, name: "Diamond I 💎", next: 4800 },
+    { min: 4800, name: "Diamond II 💎💎", next: 5300 },
+    { min: 5300, name: "Diamond III 💎💎💎", next: 6000 },
+    { min: 6000, name: "Elite I ⚡️", next: 6800 },
+    { min: 6800, name: "Elite II ⚡️⚡️", next: 7600 },
+    { min: 7600, name: "Elite III ⚡️⚡️⚡️", next: 8500 },
+    { min: 8500, name: "Master I 🔥", next: 9500 },
+    { min: 9500, name: "Master II 🔥🔥", next: 10500 },
+
+    // --- LATE GAME (10,500 - 100,000) ---
+    { min: 10500, name: "Master III 🔥🔥🔥", next: 12500 },
+    { min: 12500, name: "Grandmaster I 🎖️", next: 15000 },
+    { min: 15000, name: "Grandmaster II 🎖️🎖️", next: 18000 },
+    { min: 18000, name: "Grandmaster III 🎖️🎖️🎖️", next: 22000 },
+    { min: 22000, name: "Legend I 🏆", next: 27000 },
+    { min: 27000, name: "Legend II 🏆🏆", next: 33000 },
+    { min: 33000, name: "Legend III 🏆🏆🏆", next: 40000 },
+    { min: 40000, name: "Mythic I 🏅", next: 50000 },
+    { min: 50000, name: "Mythic II 🏅🏅", next: 65000 },
+    { min: 65000, name: "Mythic III 🏅🏅🏅", next: 85000 },
+    { min: 85000, name: "Divine I 🔱", next: 110000 },
+
+    // --- END GAME (110,000+) ---
+    { min: 110000, name: "Divine II 🔱🔱", next: 150000 },
+    { min: 150000, name: "Divine III 🔱🔱🔱", next: 250000 },
+    { min: 250000, name: "Immortal ♾️", next: 500000 },
+    { min: 500000, name: "Celestial 🌌", next: 1000000 },
+    { min: 1000000, name: "The Zenith 🔝", next: Infinity }
+];
     ];
 
     async function init() {
